@@ -439,6 +439,56 @@ namespace NINA.Plugin.TargetScheduler.Planning {
             }
         }
 
+        private void UpdateTargetExposurePlans(ITarget previousTarget) {
+            if (previousTarget == null) return;
+
+            // If running in a real sequence, reload exposure plans to get latest from database
+            if (!previousTarget.IsPreview) {
+                previousTarget.AllExposurePlans = GetExposurePlans(previousTarget);
+            }
+
+            previousTarget.ExposurePlans.Clear();
+            previousTarget.CompletedExposurePlans.Clear();
+
+            previousTarget.AllExposurePlans.ForEach(ep => {
+                if (ep.IsIncomplete()) {
+                    previousTarget.ExposurePlans.Add(ep);
+                } else {
+                    SetRejected(ep, Reasons.FilterComplete);
+                    previousTarget.CompletedExposurePlans.Add(ep);
+                }
+            });
+
+            // If this target is using an override exposure order, we need to ensure that it covers all exposure plans.
+            // Otherwise, they have to be marked rejected since the target would never reach completion just using
+            // the OEO list (this is in the context of whether the current target can continue).
+            OverrideOrderExposureSelector oeoExposureSelector = previousTarget.ExposureSelector as OverrideOrderExposureSelector;
+            if (oeoExposureSelector != null) {
+                for (int i = 0; i < previousTarget.AllExposurePlans.Count; i++) {
+                    if (!oeoExposureSelector.ContainsExposurePlanIdx(i)) {
+                        SetRejected(previousTarget.AllExposurePlans[i], Reasons.FilterComplete);
+                    }
+                }
+            }
+        }
+
+        private List<IExposure> GetExposurePlans(ITarget target) {
+            try {
+                SchedulerDatabaseInteraction database = new SchedulerDatabaseInteraction();
+                using (ISchedulerDatabaseContext context = database.GetContext()) {
+                    var eps = context.GetExposurePlans(target.DatabaseId);
+                    List<IExposure> exposures = new List<IExposure>(eps.Count);
+                    eps.ForEach(ep => {
+                        exposures.Add(new PlanningExposure(target, ep, ep.ExposureTemplate));
+                    });
+                    return exposures;
+                }
+            } catch (Exception ex) {
+                TSLogger.Error($"exception reloading target exposure plans {target.Name}: {ex.StackTrace}");
+                throw new SequenceEntityFailedException($"Scheduler: exception reloading target exposure plans: {ex.Message}", ex);
+            }
+        }
+
         public bool HasActiveProjects(List<IProject> projects) {
             if (projects == null) {
                 projects = GetProjects();
