@@ -108,6 +108,18 @@ namespace NINA.Plugin.TargetScheduler.Database {
         Task<int> SaveChangesAsync();
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
         IEnumerable<DbEntityValidationResult> GetValidationErrors();
+
+        List<AcquiredImage> GetPendingAcquiredImagesForGrading(ExposurePlan exposurePlan);
+
+        ProfilePreference GetProfilePreferenceForExport(string profileId);
+
+        List<Project> GetProjectsForExport(string profileId);
+
+        List<ExposureTemplate> GetExposureTemplatesForExport(string profileId);
+
+        List<AcquiredImage> GetAcquiredImagesForExport(string profileId);
+
+        List<ImageData> GetImageDataForExport(string profileId);
     }
 
     public class SchedulerDatabaseContext : DbContext, ISchedulerDatabaseContext {
