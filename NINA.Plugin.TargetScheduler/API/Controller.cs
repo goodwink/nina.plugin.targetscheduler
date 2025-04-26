@@ -348,20 +348,32 @@ namespace NINA.Plugin.TargetScheduler.API {
             Exposure = p.Exposure != -1 ? p.Exposure : p.ExposureTemplate.DefaultExposure;
             FilterName = p.ExposureTemplate.FilterName;
 
-            var imageMetadatas = i.Select(i => i.Metadata);
-            var hfrs = imageMetadatas.Where(m => !Double.IsNaN(m.HFR)).Select(m => m.HFR);
-            var fwhms = imageMetadatas.Where(m => !Double.IsNaN(m.FWHM)).Select(i => i.FWHM);
-            var eccs = imageMetadatas.Where(m => !Double.IsNaN(m.Eccentricity)).Select(i => i.Eccentricity);
+            try {
+                var imageMetadatas = i.Select(i => i.Metadata);
+                var hfrs = imageMetadatas.Where(m => !Double.IsNaN(m.HFR)).Select(m => m.HFR);
+                var fwhms = imageMetadatas.Where(m => !Double.IsNaN(m.FWHM)).Select(i => i.FWHM);
+                var eccs = imageMetadatas.Where(m => !Double.IsNaN(m.Eccentricity)).Select(i => i.Eccentricity);
 
-            HFRMean = hfrs.Average();
-            HFRStdDev = StdDev(hfrs);
-            HFRBelowAutoAcceptLevel = hfrLimit > 0.0 ? hfrs.Count(t => t <= hfrLimit) : -1;
-            FWHMMean = fwhms.Average();
-            FWHMStdDev = StdDev(fwhms);
-            FWHMBelowAutoAcceptLevel = fwhmLimit > 0.0 ? fwhms.Count(t => t <= fwhmLimit) : -1;
-            EccentricityMean = eccs.Average();
-            EccentricityStdDev = StdDev(eccs);
-            EccentricityBelowAutoAcceptLevel = eccLimit > 0.0 ? eccs.Count(t => t <= eccLimit) : -1;
+                HFRMean = hfrs.Average();
+                HFRStdDev = StdDev(hfrs);
+                HFRBelowAutoAcceptLevel = hfrLimit > 0.0 ? hfrs.Count(t => t <= hfrLimit) : -1;
+                FWHMMean = fwhms.Average();
+                FWHMStdDev = StdDev(fwhms);
+                FWHMBelowAutoAcceptLevel = fwhmLimit > 0.0 ? fwhms.Count(t => t <= fwhmLimit) : -1;
+                EccentricityMean = eccs.Average();
+                EccentricityStdDev = StdDev(eccs);
+                EccentricityBelowAutoAcceptLevel = eccLimit > 0.0 ? eccs.Count(t => t <= eccLimit) : -1;
+            } catch {
+                HFRMean = 0.0;
+                HFRStdDev = 0.0;
+                HFRBelowAutoAcceptLevel = -1;
+                FWHMMean = 0.0;
+                FWHMStdDev = 0.0;
+                FWHMBelowAutoAcceptLevel = -1;
+                EccentricityMean = 0;
+                EccentricityStdDev = 0;
+                EccentricityBelowAutoAcceptLevel = -1;
+            }
         }
 
         public double Exposure { get; private set; }
