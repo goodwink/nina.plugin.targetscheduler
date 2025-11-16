@@ -64,9 +64,7 @@ namespace NINA.Plugin.TargetScheduler.Database {
         ExposureTemplate GetExposureTemplate(int id);
         List<OverrideExposureOrderItem> GetOverrideExposureOrders(int targetId);
         void ClearExistingOverrideExposureOrders(int targetId);
-        void ReplaceFilterCadences(int targetId, List<FilterCadenceItem> items);
         List<FilterCadenceItem> GetFilterCadences(int targetId);
-        void ClearExistingFilterCadences(int targetId);
         List<AcquiredImage> GetAcquiredImages(int targetId, string filterName);
         List<AcquiredImage> GetAcquiredImages(int targetId);
         List<AcquiredImage> GetAcquiredImages(string profileId, DateTime newerThan);
@@ -120,6 +118,17 @@ namespace NINA.Plugin.TargetScheduler.Database {
         List<AcquiredImage> GetAcquiredImagesForExport(string profileId);
 
         List<ImageData> GetImageDataForExport(string profileId);
+        Project GetProjectOnly(int projectId);
+        AcquiredImage ManualUpdateGrading(AcquiredImage acquiredImage, GradingStatus oldStatus, GradingStatus newStatus);
+        Target MoveTarget(Project project, Target source);
+        Target ToggleExposurePlan(Target target, ExposurePlan exposurePlan);
+        void ClearExistingFilterCadences(int targetId, bool impactingChange = true);
+        void ReplaceFilterCadences(int targetId, List<FilterCadenceItem> items, bool impactingChange = true);
+        AcquiredImage GetAcquiredImageByGuid(string v);
+        ExposurePlan GetExposurePlanByGuid(string v);
+        ExposureTemplate GetExposureTemplateByGuid(string v);
+        Project GetProjectByGuid(string v);
+        Target GetTargetByGuid(string v);
     }
 
     public class SchedulerDatabaseContext : DbContext, ISchedulerDatabaseContext {
